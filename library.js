@@ -1,12 +1,12 @@
 'use strict'
 
 /*
-	DESCRIPTION : Housekeeping and general functions used in the library
+    DESCRIPTION : Housekeeping and general functions used in the library
     DEPENDENCIES : jQuery
     NOTE : This library uses features like History API. This might not support older browsers.
-	CREATOR : Nisal Periyapperuma
+    CREATOR : Nisal Periyapperuma
 
-	INITIAL DATE : 02.08.2015
+    INITIAL DATE : 02.08.2015
     CONTRIBUTORS : Nisal Periyapperuma
 
     "OBJECTS":  '_' -> Contains basic housekeeping functions including: parsing, existance check etc.
@@ -26,8 +26,8 @@ _.prototype.exists = function(val) {
 }
 
 /*
-	Name: _.parser
-	Description: parse a string with the template and a scope object (scope) returns a parsed string.
+    Name: _.parser
+    Description: parse a string with the template and a scope object (scope) returns a parsed string.
 */
 
 // Escape string
@@ -101,7 +101,7 @@ _.prototype.parser = function(str, scope) {
 }
 
 /*
-	LOOPING FUNCTIONS
+    LOOPING FUNCTIONS
 */
 
 _.prototype.forEachAttr = function(object, callback) {
@@ -193,6 +193,7 @@ UniqueList.prototype.all = function() {
     }
     return results;
 }
+
 /*
     Name: View
     Description: Functions and Structures related to Views
@@ -406,21 +407,27 @@ function DataStore(name, config) {
     }
 
     this.store = {};
+    this.char_length = 0;
+
     this.name = name;
 
     // Local Caching is enabled by default
     // Set config.localcache = false if you want to disable caching
     // Caching is done in the localStorage, overide this function and the set function to change this
 
-    if (!_.exists(config.localcache)) {
-        config.localcache = true;
+    if (_.exists(config.localcache)) {
+        config.localcache = false;
     }
+
+    if (!_.exists(config.limit)) config.limit = 500000;
 
     this.config = config;
 
     if (this.config.localcache) {
-        var tmp = JSON.parse(localStorage.getItem(this.name));
+        var storage_string = localStorage.getItem(this.name);
+        var tmp = JSON.parse(storage_string);
         if (tmp) {
+            this.char_length = storage_string.length;
             this.store = tmp;
         }
         for (var d in tmp) {
@@ -457,15 +464,38 @@ DataStore.prototype._removeOldestValue = function() {
     var id = this.queue.shift();
     delete this.store[id];
     localStorage.setItem(this.name, JSON.stringify(this.store));
+    this.char_length = (localStorage.getItem(this.name)).length;
 }
 
 DataStore.prototype.set = function(id, val) {
     if (this.config.localcache) {
         var self = this;
         try {
+            if (self.config.localcache) {
+                if (typeof self.store[id] === 'undefined') {
+                    if (self.char_length + val.length > self.config.limit) {
+                        self._removeOldestValue();
+                        console.log("Cache Overflow", self.name);
+                        self.set(id, val);
+                        return;
+                    }
+                } else {
+                    if (self.char_length - self.store[id].length + val.length > self.config.limit) {
+                        console.log("Cache Overflow", self.name);
+                        self._removeOldestValue();
+                        self.set(id, val);
+                        return;
+                    }
+                }
+            }
+
             self.store[id] = val;
-            localStorage.setItem(this.name, JSON.stringify(this.store));
+            if (this.config.localcache) {
+                localStorage.setItem(this.name, JSON.stringify(this.store));
+                self.char_length = (localStorage.getItem(this.name)).length;
+            }
             if (!this._inQueue(id)) this._pushToQueue(id);
+
         } catch (e) {
             console.log(e);
             self._removeOldestValue();
@@ -539,9 +569,9 @@ DataList.prototype.get = function() {
 }
 
 /*
-	Name: lib 
+    Name: lib 
     Note : I should really come up with a name for this
-	Description: Contains structures for routes,views and data stores
+    Description: Contains structures for routes,views and data stores
 */
 
 var lib = function() {
