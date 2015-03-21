@@ -27,6 +27,10 @@ router.when('/tag/:tag_id', function(params) {
 ``router.goTo(url);``
 Redirects the user to given url and runs the attached handler.
 
+##Using Views
+
+Views can be used to seperate your UI into different components, and encapsulate data related to a specific component. To define a view use the Library.defineView() function (explained below) and to create an instance use Library.createElement() function.
+
 
 
 
