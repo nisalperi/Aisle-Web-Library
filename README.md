@@ -2,7 +2,7 @@
 JavaScript Library used in the Aisle Web application. Includes Views, Routers, a DataStore object etc.
 
 ##Using the Router Object
-Router object uses HTML History API to specify handlers related to specific paths.
+Router object uses the History API to map handlers to specific paths.
 
 ###Setting up the router
 `var router = new Router();`
@@ -10,7 +10,7 @@ Router object uses HTML History API to specify handlers related to specific path
 ###Defining a path
 `router.when(path,handler);`
 
-Parameters are send as the first argument for the handler function. Parameters should be defined with relative path.
+'Parameters' object is send as the first argument of the handler function. Parameters should be specified with the relative path.
 
 ````
 router.when('/tag/:tag_id', function(params) {
@@ -20,6 +20,9 @@ router.when('/tag/:tag_id', function(params) {
 ````
 
 ##Activating the router
+
+After all the paths and handlers are defined, use the ``router.activateRouter()`` function.
+
 ``router.activateRouter();``
 
 ##router.goTo()
