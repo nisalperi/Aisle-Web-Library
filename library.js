@@ -415,7 +415,7 @@ function DataStore(name, config) {
     // Set config.localcache = false if you want to disable caching
     // Caching is done in the localStorage, overide this function and the set function to change this
 
-    if (_.exists(config.localcache)) {
+    if (!_.exists(config.localcache)) {
         config.localcache = false;
     }
 
@@ -533,7 +533,7 @@ DataStore.prototype.clear = function() {
 }
 
 /* 
-    Name : List
+    Name : DataList
     Description : Data structuring for the application
                   Stores recurring lists used by the app
 */
