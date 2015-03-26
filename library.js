@@ -238,12 +238,17 @@ View.prototype.render = function(data) {
 
     // Run the Events before return the element
     this._.events(data);
-    this.data = data;
+    this._.data = data;
 
+    for (var i = 0; i < this._.event_queue.length; i++) {
+        this._.event_queue[i]._.events();
+    }
+    this._.event_queue = [];
     return this;
 }
 
 View.prototype.getHTML = function(data) {
+    this._.data = data;
     return this._.render(data);
 }
 
@@ -609,6 +614,7 @@ lib.prototype.defineView = function(name, definition) {
 
     definition.name = name;
     definition.element = "";
+    definition.event_queue = [];
 
     this.views[name] = new View(definition);
     return this.views[name];
