@@ -353,10 +353,12 @@ Router.prototype.activateRouter = function() {
 
     $("html").delegate("a", "click", function(e) {
         var tmp_url = $(this).attr('href');
-        if (tmp_url !== '' && tmp_url.length > 0) {
-            self.goTo(tmp_url);
+        if (!$(this).hasClass('external-link')) {
+            if (tmp_url !== '' && tmp_url.length > 0) {
+                self.goTo(tmp_url);
+            }
+            e.preventDefault();
         }
-        e.preventDefault();
     });
 
     $(document).ready(function() {
