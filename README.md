@@ -10,7 +10,7 @@ Router object uses the History API to map handlers to specific paths.
 ###Defining a path
 `router.when(path,handler);`
 
-'Parameters' object is send as the first argument of the handler function. Parameters should be specified with the relative path.
+'Parameters' object is sent as the first argument of the handler function. Parameters should be specified with the relative path.
 
 ````
 router.when('/tag/:tag_id', function(params) {
@@ -32,7 +32,7 @@ Redirects the user to given url and runs the attached handler.
 
 ##Using Views
 
-Views can be used to seperate your UI into different components, and encapsulate data related to a specific component. To define a view use the ``Library.defineView()`` function (explained below) and to create an instance of a view use the ``Library.createElement()`` function.
+Views can be used to seperate your UI into different components, and encapsulate data related to those specific component. To define a view use the ``Library.defineView()`` function (explained below) and to create an instance of a view use the ``Library.createElement()`` function.
 
 ###``Library.defineView()``
 
