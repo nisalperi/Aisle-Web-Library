@@ -14,7 +14,7 @@ var router = new Router();
 router.when(path,handler);
 ```
 
-'Parameters' object is sent as the first argument of the handler function. Parameters should be specified with the relative path.
+`param` object is sent as the first argument of the handler function. Parameters should be specified with the relative path.
 
 ```javascript
 router.when('/tag/:tag_id', function(params) {
