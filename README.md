@@ -95,6 +95,16 @@ Library.defineView('loading-bar', (function() {
 - **`elem: string(jQuery selector)`** DOM Element(s) to which this new instance should be appended after `view_instance.render()` is called. **Optional**
 - **`wrap: boolean`* If `true`, the content will be wrapped inside inside a div with an ID generated using a combination of the instance name, instance id, and view name. Also the instance will only accessible within the scope of the instance object. If `false`, the instance could be accessed from `Library.view_instances[instance_id]`, globally. **Default:true**
 
+**Example: Creating an instance of the view `loading-bar` defined earlier in this document.**
+
+```javascript
+Library.createElement({
+    name: 'loading-bar',
+    id: 'loading-bar-top',
+    elem: '#loading-bar',
+    wrap: false
+}).render({});
+```
 
 
 
