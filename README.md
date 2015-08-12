@@ -106,5 +106,7 @@ Library.createElement({
 }).render({});
 ```
 
+### `View` Object
+
 
 
