@@ -43,7 +43,7 @@ router.refresh();`
 ```
 
 ## `DataStore` object
-`DataStore` is a key,value datastorage which supports caching using the `LocalStorage`. It handles data overflows as well.
+`DataStore` is a key,value datastorage which supports caching using the `LocalStorage`. It handles data overflows using the **last updated** value.
 
 ### Creating Datastore
 ```javascript
