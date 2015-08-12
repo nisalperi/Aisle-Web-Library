@@ -14,12 +14,11 @@ var router = new Router();
 router.when(path,handler);
 ```
 
-`param` object is sent as the first argument of the handler function. Parameters should be specified with the relative path.
+`params` object is sent as the first argument of the handler function. Parameters should be specified with the relative path.
 
 ```javascript
 router.when('/tag/:tag_id', function(params) {
-  // params object contains the attribute tag_id with the respective tag_id according to the path
-  // handler function
+  console.log(params.tag_id); //logs the tag_id
 });
 ```
 
