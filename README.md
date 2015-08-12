@@ -42,6 +42,26 @@ router.back();
 router.refresh();`
 ```
 
+## `DataStore` object
+`DataStore` is a key,value datastorage which supports caching using the `LocalStorage`. It handles data overflows as well.
+
+### Creating Datastore
+```javascript
+var ImageStore = new DataStore('images', {
+    limit: 3500000, // Max number of characters stored in the LocalStorage
+    localcache: true
+});
+```
+### Accessing data
+```javascript
+var data = ImageStore.get(id);
+```
+
+### Setting data
+```javascript
+ImageStore.set(id, image_data);
+```
+
 ##Using Views
 
 Views can be used to seperate your UI into different components, and encapsulate data related to those specific component. To define a view, use the `Library.defineView()` function (explained below). To create an instance of a view, use the `Library.createElement()` function.
