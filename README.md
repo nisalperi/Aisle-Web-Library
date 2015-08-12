@@ -34,8 +34,14 @@ router.activateRouter();
 router.goTo(url);
 ```
 
-### `router.back()`
-### `router.refresh()`
+### Other `router` methods
+
+```javascript
+router.back();
+```
+```javascript
+router.refresh();`
+```
 
 ##Using Views
 
