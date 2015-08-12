@@ -15,6 +15,8 @@
                 'Routers' -> Routes, handlers etc.
                 'AJAXObject' -> Interface to the jQuery AJAX object
                 'DataStore' -> get(),set() methods and caching in the localstorage
+                'UniqueList' --> Unique array object
+                'DateList' --> List Object
 */
 
 function _() {};
@@ -71,6 +73,8 @@ _.prototype.parser = function(str, scope) {
     var i = 0;
     var _parsed = "";
 
+    var parsed_obj = {};
+
     while (i < str.length - 4) {
         //if start of the {{}} sector
         if (str[i] === '{' && str[i + 1] === '{') {
@@ -83,7 +87,6 @@ _.prototype.parser = function(str, scope) {
 
                     _parsed += this.getValues(_tmp_attr_array, scope);
 
-                    //var _tmp_object = scope;
                     i++;
                     break;
                 }
@@ -162,101 +165,6 @@ _.prototype.dynamicDate = function(old) {
 }
 
 var _ = new _();
-
-/*
-    Name: unique queue
-*/
-
-function UniqueList() {
-    this.list = {};
-}
-
-UniqueList.prototype.add = function(key, val) {
-    if (typeof this.list[key] === 'undefined') {
-        this.list[key] = val;
-    } else {
-        console.log("WARNING: Previous value at the key was replaced");
-        this.list[key] = val;
-    }
-}
-
-UniqueList.prototype.get = function(key) {
-    return this.list[key];
-}
-
-UniqueList.prototype.all = function() {
-    var results = [];
-    for (var key in this.list) {
-        if (this.list.hasOwnProperty(key)) {
-            results.push(this.list[key]);
-        }
-    }
-    return results;
-}
-
-/*
-    Name: View
-    Description: Functions and Structures related to Views
-*/
-
-function View(definition) {
-    this._ = definition;
-    this.id = this._.id;
-}
-
-View.prototype.render = function(data) {
-    var tmp = this._.render(data);
-    //parse the processed html
-    var html = $.parseHTML(tmp);
-
-    if (_.exists(this._.clearElement) && this._.clearElement === true) {
-        $(this._.element).empty();
-    }
-
-    // Edited to support destorying
-    // Date : 24th Feb 2015
-    // If wrap element is not defined or set true, it's assumed to be true
-    // If this.wrap is true the instance will be wrapped inside a DOM element with the ID before appending to the DOM
-
-    if (_.exists(this.DOM_id) && this.wrap === true) {
-        var tmp_container_template = '<div id="' + this.DOM_id + '"></div>';
-        var tmp_container_html = $.parseHTML(tmp_container_template);
-
-        // Remove existing DOM elements with the same ID
-        $('#' + this.DOM_id).remove();
-
-        // Append the new node to the defined DOM element
-        $(this.element).append(tmp_container_html);
-
-        // Append the generate HTML to the element with the DOM_ID
-        $("#" + this.DOM_id).append(html);
-
-    } else {
-        // No wrapping. Simply append the generated html to the defined element
-        $(this.element).append(html);
-    }
-
-    // Run the Events before return the element
-    this._.events(data);
-    this._.data = data;
-
-    for (var i = 0; i < this._.event_queue.length; i++) {
-        this._.event_queue[i]._.events();
-    }
-    this._.event_queue = [];
-    return this;
-}
-
-View.prototype.getHTML = function(data) {
-    this._.data = data;
-    return this._.render(data);
-}
-
-View.prototype.destroy = function() {
-    if (_.exists(this.DOM_id)) {
-        $('#' + this.DOM_id).remove();
-    }
-}
 
 /*
     Name: Router
@@ -387,6 +295,18 @@ Router.prototype.last = function() {
     return this.queue[this.queue.length - 2];
 }
 
+Router.prototype.refresh = function(callback) {
+    var _path = window.location.pathname;
+    this.runHandler(_path);
+    if (_.exists(callback)) {
+        callback();
+    }
+}
+
+Router.prototype.getQueryPara = function(callback) {
+    var _path = window.location.pathname;
+    console.log(_path);
+}
 
 /*
     Name : AJAX Object
@@ -396,6 +316,37 @@ Router.prototype.last = function() {
 function AJAXRequest(config, data) {
     config.data = data;
     return $.ajax(config);
+}
+
+/*
+    Name: unique queue
+*/
+
+function UniqueList() {
+    this.list = {};
+}
+
+UniqueList.prototype.add = function(key, val) {
+    if (typeof this.list[key] === 'undefined') {
+        this.list[key] = val;
+    } else {
+        console.log("WARNING: Previous value at the key was replaced.[UNIQUE LIST]");
+        this.list[key] = val;
+    }
+}
+
+UniqueList.prototype.get = function(key) {
+    return this.list[key];
+}
+
+UniqueList.prototype.all = function() {
+    var results = [];
+    for (var key in this.list) {
+        if (this.list.hasOwnProperty(key)) {
+            results.push(this.list[key]);
+        }
+    }
+    return results;
 }
 
 /* 
@@ -421,6 +372,18 @@ function DataStore(name, config) {
     // Local Caching is enabled by default
     // Set config.localcache = false if you want to disable caching
     // Caching is done in the localStorage, overide this function and the set function to change this
+
+    (function testLocalStorage() {
+        try {
+            localStorage.setItem('localStoragetest', '1');
+            localStorage.removeItem('localStoragetest');
+            if (_.exists(config.localcache) && config.localcache) {
+                config.localcache = true;
+            }
+        } catch (e) {
+            config.localcache = false;
+        }
+    })();
 
     if (!_.exists(config.localcache)) {
         config.localcache = false;
@@ -460,7 +423,7 @@ DataStore.prototype._pushToQueue = function(id) {
 
 DataStore.prototype._inQueue = function(id) {
     for (var i = 0; i < this.queue.length; i++) {
-        if (this.queue[i] === id) return true;
+        if (this.queue[i] === id) return i;
     }
     return false;
 }
@@ -470,7 +433,11 @@ DataStore.prototype._removeOldestValue = function() {
     this.store = JSON.parse(localStorage.getItem(this.name));
     var id = this.queue.shift();
     delete this.store[id];
-    localStorage.setItem(this.name, JSON.stringify(this.store));
+    try {
+        localStorage.setItem(this.name, JSON.stringify(this.store));
+    } catch (e) {
+        throw (e);
+    }
     this.char_length = (localStorage.getItem(this.name)).length;
 }
 
@@ -482,13 +449,13 @@ DataStore.prototype.set = function(id, val) {
                 if (typeof self.store[id] === 'undefined') {
                     if (self.char_length + val.length > self.config.limit) {
                         self._removeOldestValue();
-                        console.log("Cache Overflow", self.name);
+                        //console.log("Cache Overflow", self.name);
                         self.set(id, val);
                         return;
                     }
                 } else {
                     if (self.char_length - self.store[id].length + val.length > self.config.limit) {
-                        console.log("Cache Overflow", self.name);
+                        //console.log("Cache Overflow", self.name);
                         self._removeOldestValue();
                         self.set(id, val);
                         return;
@@ -498,7 +465,11 @@ DataStore.prototype.set = function(id, val) {
 
             self.store[id] = val;
             if (this.config.localcache) {
-                localStorage.setItem(this.name, JSON.stringify(this.store));
+                try {
+                    localStorage.setItem(this.name, JSON.stringify(this.store));
+                } catch (e) {
+                    throw (e);
+                }
                 self.char_length = (localStorage.getItem(this.name)).length;
             }
             if (!this._inQueue(id)) this._pushToQueue(id);
@@ -532,6 +503,17 @@ DataStore.prototype.get = function(id) {
 
     } else {
         return false;
+    }
+}
+
+DataStore.prototype.remove = function(id) {
+    var self = this;
+    var queue_pos = this._inQueue(id);
+    if (queue_pos && _.exists(self.store[id])) {
+        self.char_length -= self.store[id].length;
+        delete self.store[id];
+        var tmp = [];
+        self.queue = tmp.concat(self.queue.slice(0, queue_pos), self.queue.slice(queue_pos + 1, self.queue.length));
     }
 }
 
@@ -576,6 +558,72 @@ DataList.prototype.get = function() {
 }
 
 /*
+    Name: View
+    Description: Functions and Structures related to Views
+*/
+
+function View(definition) {
+    this._ = definition;
+    this._.destory = this.destory;
+    this.id = this._.id;
+}
+
+View.prototype.render = function(data) {
+    var tmp = this._.render(data);
+    //parse the processed html
+    var html = $.parseHTML(tmp);
+
+    if (_.exists(this._.clearElement) && this._.clearElement === true) {
+        $(this._.element).empty();
+    }
+
+    // Edited to support destorying
+    // Date : 24th Feb 2015
+    // If wrap element is not defined, it's assumed to be true
+    // If this.wrap is true the instance will be wrapped inside a DOM element with the ID before appending to the DOM
+
+    if (_.exists(this.DOM_id) && this.wrap === true) {
+        var tmp_container_template = '<div id="' + this.DOM_id + '"></div>';
+        var tmp_container_html = $.parseHTML(tmp_container_template);
+
+        // Remove existing DOM elements with the same ID
+        $('#' + this.DOM_id).remove();
+
+        // Append the new node to the defined DOM element
+        $(this.element).append(tmp_container_html);
+
+        // Append the generate HTML to the element with the DOM_ID
+        $("#" + this.DOM_id).append(html);
+
+    } else {
+        // No wrapping. Simply append the generated html to the defined element
+        $(this.element).append(html);
+    }
+
+    // Run the Events before return the element
+    this._.events(data);
+    this._.data = data;
+    this._.destroy = this.destroy;
+
+    for (var i = 0; i < this._.event_queue.length; i++) {
+        this._.event_queue[i]._.events();
+    }
+    this._.event_queue = [];
+    return this;
+}
+
+View.prototype.getHTML = function(data) {
+    this._.data = data;
+    return this._.render(data);
+}
+
+View.prototype.destroy = function() {
+    if (_.exists(this.DOM_id)) {
+        $('#' + this.DOM_id).remove();
+    }
+}
+
+/*
     Name: lib 
     Note : I should really come up with a name for this
     Description: Contains structures for routes,views and data stores
@@ -584,7 +632,6 @@ DataList.prototype.get = function() {
 var lib = function() {
     this.views = [];
     this.view_instances = [];
-    this.Router = {}
 }
 
 lib.prototype.defineView = function(name, definition) {
@@ -624,9 +671,14 @@ lib.prototype.defineView = function(name, definition) {
 
 lib.prototype.createElement = function(prop) {
     var name = prop.name;
-    var id = prop.id;
+    var id = prop.id || '';
     var element = prop.elem;
     var wrap = prop.wrap;
+    var config = {};
+
+    if (_.exists(prop.config)) {
+        config = prop.config;
+    }
 
     if (_.exists(this.views[name])) {
         var inst = this.views[name];
@@ -637,6 +689,8 @@ lib.prototype.createElement = function(prop) {
         if (_.exists(name) && name !== '' && name !== null) {
             inst.name = name;
         }
+        inst._.config = config;
+
         if (!_.exists(wrap) || wrap === true) {
             inst.wrap = true;
         } else {
@@ -645,6 +699,7 @@ lib.prototype.createElement = function(prop) {
         }
 
         if (name !== null && inst.wrap === true) {
+            inst._.id = id;
             var tmp_id = 'element-' + id + '-' + name;
             inst.DOM_id = tmp_id;
         }
