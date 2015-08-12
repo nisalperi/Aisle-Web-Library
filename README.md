@@ -2,7 +2,7 @@
 JavaScript Library used in the Aisle Web application. Includes Views, Routers, a DataStore object etc.
 
 ## Using the Router Object
-Router object uses the History API to map handlers to specific paths.
+Router object maps handlers to paths. Uses the History API.
 
 ### Setting up the router
 ```javascript
